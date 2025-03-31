@@ -17,6 +17,13 @@ const WireguardNativeBridge = NativeModules.WireguardNativeBridge
       }
     );
 
-export function multiply(a: number, b: number): Promise<number> {
-  return WireguardNativeBridge.multiply(a, b);
+type TunnelState = 'UP' | 'DOWN';
+
+interface WireguardModule {
+  prepareVPN(): Promise<string>;
+  startTunnel(configString: string): Promise<string>;
+  stopTunnel(): Promise<void>;
+  getTunnelStatus(): Promise<TunnelState>;
 }
+
+export default WireguardNativeBridge as WireguardModule;
