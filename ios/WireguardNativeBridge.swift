@@ -5,7 +5,7 @@ import NetworkExtension
 class WireguardNativeBridge: NSObject {
 
     private var tunnel: NETunnelProviderManager?
-    private let tunnelBundleId = "com.wireguardvpn.tunnel"
+    private let tunnelBundleId = "com.xalk.actualvpnmobile.network-extension"
 
     // Prepare VPN permissions on iOS
     @objc(prepareVPN:withRejecter:)
