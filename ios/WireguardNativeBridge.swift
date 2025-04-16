@@ -38,6 +38,9 @@ class WireguardNativeBridge: NSObject {
             return
         }
 
+        // Log the config string to debug
+        print("Config String: \(configString)")
+
         // Create the protocol configuration
         let tunnelProtocol = NETunnelProviderProtocol()
         tunnelProtocol.providerBundleIdentifier = tunnelBundleId
@@ -59,12 +62,20 @@ class WireguardNativeBridge: NSObject {
                 return
             }
 
-            // Start the VPN tunnel
-            do {
-                try tunnel.connection.startVPNTunnel()
-                resolve("Tunnel started successfully")
-            } catch let startError {
-                reject("ERROR_STARTING_TUNNEL", "Failed to start tunnel: \(startError.localizedDescription)", startError)
+            // Now load the configuration from preferences
+            self?.tunnel?.loadFromPreferences { loadError in
+                if let loadError = loadError {
+                    reject("ERROR_LOADING_CONFIG", "Failed to load VPN configuration: \(loadError.localizedDescription)", loadError)
+                    return
+                }
+
+                // Start the VPN tunnel
+                do {
+                    try self?.tunnel?.connection.startVPNTunnel()
+                    resolve("Tunnel started successfully")
+                } catch let startError {
+                    reject("ERROR_STARTING_TUNNEL", "Failed to start tunnel: \(startError.localizedDescription)", startError)
+                }
             }
         }
     }
