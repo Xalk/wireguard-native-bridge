@@ -1,4 +1,4 @@
-import { NativeModules, Platform } from 'react-native';
+import { NativeModules, NativeEventEmitter, Platform } from 'react-native';
 
 const LINKING_ERROR =
   `The package 'wireguard-native-bridge' doesn't seem to be linked. Make sure: \n\n` +
@@ -24,6 +24,17 @@ interface WireguardModule {
   startTunnel(configString: string): Promise<string>;
   stopTunnel(): Promise<void>;
   getTunnelStatus(): Promise<TunnelState>;
+
+  addListener(eventType: string, listener: (event: any) => void): any;
 }
 
-export default WireguardNativeBridge as WireguardModule;
+const WireguardModuleWithEvents = {
+  ...WireguardNativeBridge,
+
+  addListener(eventType: string, listener: any) {
+    const emitter = new NativeEventEmitter(WireguardNativeBridge);
+    return emitter.addListener(eventType, listener);
+  },
+};
+
+export default WireguardModuleWithEvents as WireguardModule;
