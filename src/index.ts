@@ -1,4 +1,4 @@
-import { NativeModules, NativeEventEmitter, Platform } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 
 const LINKING_ERROR =
   `The package 'wireguard-native-bridge' doesn't seem to be linked. Make sure: \n\n` +
@@ -25,15 +25,18 @@ interface WireguardModule {
   stopTunnel(): Promise<void>;
   getTunnelStatus(): Promise<TunnelState>;
 
-  addListener(eventType: string, listener: (event: any) => void): any;
+  openVPNSettings(): Promise<void>;
 }
 
 const WireguardModuleWithEvents = {
   ...WireguardNativeBridge,
 
-  addListener(eventType: string, listener: any) {
-    const emitter = new NativeEventEmitter(WireguardNativeBridge);
-    return emitter.addListener(eventType, listener);
+  openVPNSettings(): Promise<void> {
+    if (Platform.OS === 'android') {
+      return WireguardNativeBridge.openVPNSettings();
+    } else {
+      throw new Error('openVPNSettings is only available on Android');
+    }
   },
 };
 

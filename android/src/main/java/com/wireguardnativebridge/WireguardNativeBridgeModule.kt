@@ -1,11 +1,23 @@
 package com.wireguardnativebridge
 
 import android.content.Context
+import android.content.Intent
+
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
+import android.os.Build
+
 import android.util.Log
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.ReactContext
+import com.facebook.react.bridge.WritableMap
+import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
+
 import com.wireguard.android.backend.Backend
 import com.wireguard.android.backend.BackendException
 import com.wireguard.android.backend.GoBackend
@@ -21,10 +33,16 @@ class WireguardNativeBridgeModule(private val reactContext: ReactApplicationCont
     private var tunnel: Tunnel? = null
     private var config: Config? = null
 
+    private var connectivityManager: ConnectivityManager? = null
+    private var networkCallback: ConnectivityManager.NetworkCallback? = null
+    private var killSwitchEnabled = false
+
 
  init {
         try {
             backend = GoBackend(reactApplicationContext)
+            connectivityManager = reactContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
             if (!android.net.VpnService.prepare(reactContext).equals(null)) {
                 Log.w(NAME, "VPN permission not yet granted")
             }
@@ -106,6 +124,21 @@ class WireguardNativeBridgeModule(private val reactContext: ReactApplicationCont
             promise.reject("ERROR_GETTING_TUNNEL_STATUS", "Backend error: ${e.message}", e)
         } catch (e: Exception) {
             promise.reject("ERROR_GETTING_TUNNEL_STATUS", e.message, e)
+        }
+    }
+
+    // kill switch
+
+    @ReactMethod
+    fun openVPNSettings(promise: Promise) {
+        try {
+            val intent = Intent(android.provider.Settings.ACTION_VPN_SETTINGS)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            reactContext.startActivity(intent)
+            promise.resolve("Opened VPN settings")
+        } catch (e: Exception) {
+            Log.e(NAME, "Failed to open VPN settings", e)
+            promise.reject("ERROR_OPENING_SETTINGS", "Failed to open VPN settings: ${e.message}")
         }
     }
 
