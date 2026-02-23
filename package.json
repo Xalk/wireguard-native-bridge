@@ -1,6 +1,6 @@
 {
   "name": "wireguard-native-bridge",
-  "version": "0.1.0",
+  "version": "1.0.16",
   "description": "Wireguard integration",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -10,7 +10,7 @@
     "lint": "expo-module lint",
     "test": "expo-module test",
     "prepare": "echo skipped",
-    "prepublishOnly": "expo-module prepublishOnly",
+    "prepublishOnly": "tsc",
     "expo-module": "expo-module",
     "open:ios": "xed example/ios",
     "open:android": "open -a \"Android Studio\" example/android"
