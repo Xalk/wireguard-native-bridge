@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["WireguardNativeBridgeModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.wireguardnativebridge.WireguardNativeBridgeModule"]
+  }
+}

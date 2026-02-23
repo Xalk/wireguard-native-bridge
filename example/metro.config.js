@@ -1,18 +1,21 @@
+const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
-const { getDefaultConfig } = require('@react-native/metro-config');
-const { getConfig } = require('react-native-builder-bob/metro-config');
-const pkg = require('../package.json');
 
-const root = path.resolve(__dirname, '..');
+const projectRoot = __dirname;
+const workspaceRoot = path.resolve(projectRoot, '..');
 
-/**
- * Metro configuration
- * https://facebook.github.io/metro/docs/configuration
- *
- * @type {import('metro-config').MetroConfig}
- */
-module.exports = getConfig(getDefaultConfig(__dirname), {
-  root,
-  pkg,
-  project: __dirname,
-});
+const config = getDefaultConfig(projectRoot);
+
+// Watch the local library folder
+config.watchFolders = [workspaceRoot];
+
+// Metro find the node_modules from both the app and the library
+config.resolver.nodeModulesPaths = [
+  path.resolve(projectRoot, 'node_modules'),
+  path.resolve(workspaceRoot, 'node_modules'),
+];
+
+// Force Metro to use the app's version of React Native (avoids conflicts)
+config.resolver.disableHierarchicalLookup = true;
+
+module.exports = config;

@@ -1,43 +1,55 @@
-import { NativeModules, Platform } from 'react-native';
+import { EventSubscription, Platform } from "react-native";
+import WireguardNativeBridgeModule from "./WireguardNativeBridgeModule";
 
-const LINKING_ERROR =
-  `The package 'wireguard-native-bridge' doesn't seem to be linked. Make sure: \n\n` +
-  Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
-  '- You rebuilt the app after installing the package\n' +
-  '- You are not using Expo Go\n';
+export * from "./WireguardNativeBridgeModule";
 
-const WireguardNativeBridge = NativeModules.WireguardNativeBridge
-  ? NativeModules.WireguardNativeBridge
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
-
-type TunnelState = 'UP' | 'DOWN';
-
-interface WireguardModule {
-  prepareVPN(): Promise<string>;
-  startTunnel(configString: string): Promise<string>;
-  stopTunnel(): Promise<void>;
-  getTunnelStatus(): Promise<TunnelState>;
-
-  openVPNSettings(): Promise<void>;
+export interface WireGuardConfig {
+  interfaceName: string;
+  privateKey: string;
+  address: string;
+  dns?: string;
+  publicKey: string;
+  endpoint: string;
+  allowedIps?: string;
 }
 
-const WireguardModuleWithEvents = {
-  ...WireguardNativeBridge,
+/**
+ * Android only: Prepares the VPN intent.
+ */
+export async function prepareVPN(): Promise<string> {
+  if (Platform.OS !== "android") {
+    throw new Error("prepareVPN is only supported on Android");
+  }
+  return await WireguardNativeBridgeModule.prepareVPN();
+}
 
-  openVPNSettings(): Promise<void> {
-    if (Platform.OS === 'android') {
-      return WireguardNativeBridge.openVPNSettings();
-    } else {
-      throw new Error('openVPNSettings is only available on Android');
-    }
-  },
-};
+/**
+ * Starts the tunnel.
+ */
+export async function startTunnel(configString: string): Promise<string> {
+  return await WireguardNativeBridgeModule.startTunnel(configString);
+}
 
-export default WireguardModuleWithEvents as WireguardModule;
+/**
+ * Stops the tunnel.
+ */
+export async function stopTunnel(): Promise<void> {
+  return await WireguardNativeBridgeModule.stopTunnel();
+}
+
+/**
+ * Gets the current status.
+ */
+export async function getTunnelStatus() {
+  return await WireguardNativeBridgeModule.getTunnelStatus();
+}
+
+/**
+ * Listen for changes in the VPN status.
+ */
+export function addListener(
+  eventType: string,
+  listener: (event: any) => void,
+): EventSubscription {
+  return WireguardNativeBridgeModule.addListener(eventType, listener);
+}
