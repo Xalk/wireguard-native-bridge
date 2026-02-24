@@ -3,18 +3,9 @@ import WireguardNativeBridgeModule from "./WireguardNativeBridgeModule";
 
 export * from "./WireguardNativeBridgeModule";
 
-export interface WireGuardConfig {
-  interfaceName: string;
-  privateKey: string;
-  address: string;
-  dns?: string;
-  publicKey: string;
-  endpoint: string;
-  allowedIps?: string;
-}
-
 /**
- * Android only: Prepares the VPN intent.
+ * Android only: Triggers the VPN permission intent.
+ * On iOS this is not needed — permission is requested automatically when the tunnel starts.
  */
 export async function prepareVPN(): Promise<string> {
   if (Platform.OS !== "android") {
@@ -25,8 +16,14 @@ export async function prepareVPN(): Promise<string> {
 
 /**
  * Starts the tunnel.
+ * @param configString - wg-quick formatted WireGuard config
+ * @param bundleId - Network Extension bundle ID, required on iOS (e.g. "com.yourapp.network-extension")
  */
-export async function startTunnel(configString: string): Promise<string> {
+export async function startTunnel(configString: string, bundleId?: string): Promise<string> {
+  if (Platform.OS === "ios") {
+    if (!bundleId) throw new Error("bundleId is required on iOS");
+    return await WireguardNativeBridgeModule.startTunnel(configString, bundleId);
+  }
   return await WireguardNativeBridgeModule.startTunnel(configString);
 }
 
