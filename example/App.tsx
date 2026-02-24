@@ -6,6 +6,7 @@ import {
   Button,
   ScrollView,
   Alert,
+  Platform,
 } from "react-native";
 import * as Wireguard from "wireguard-native-bridge";
 
@@ -18,6 +19,9 @@ DNS = [IP_ADDRESS]
 PublicKey = [ENCRYPTION_KEY]
 Endpoint = [IP_ADDRESS]
 AllowedIPs = [IP_ADDRESS]`;
+
+// Replace with your Network Extension target's bundle ID
+const BUNDLE_ID = "com.yourapp.network-extension";
 
 export default function App() {
   const [status, setStatus] = useState<string>("UNKNOWN");
@@ -56,7 +60,7 @@ export default function App() {
       addLog("Starting tunnel...");
       // Starts the WireGuard tunnel using the TEST_CONFIG defined at the top of this file.
       // Replace TEST_CONFIG with real keys/endpoint to actually connect to a VPN server.
-      const result = await Wireguard.startTunnel(TEST_CONFIG);
+      const result = await Wireguard.startTunnel(TEST_CONFIG, BUNDLE_ID);
       addLog(`Connect Result: ${result}`);
     } catch (e: any) {
       addLog(`Connect Error: ${e.message}`);
@@ -82,9 +86,11 @@ export default function App() {
       <Text style={styles.header}>WireGuard Native Bridge</Text>
       <Text style={styles.status}>Status: {status}</Text>
 
-      <View style={styles.buttonContainer}>
-        <Button title="1. Prepare (Ask Permission)" onPress={handlePrepare} />
-      </View>
+      {Platform.OS === "android" && (
+        <View style={styles.buttonContainer}>
+          <Button title="1. Prepare (Ask Permission)" onPress={handlePrepare} />
+        </View>
+      )}
       <View style={styles.buttonContainer}>
         <Button title="2. Connect (Start Tunnel)" onPress={handleConnect} />
       </View>
